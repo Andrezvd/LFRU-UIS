@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class RegistroPage extends StatefulWidget {
-  const RegistroPage({Key? key}) : super(key: key);
+  const RegistroPage({super.key});
 
   @override
   _RegistroPageState createState() => _RegistroPageState();

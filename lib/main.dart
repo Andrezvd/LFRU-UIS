@@ -9,7 +9,6 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  print("Firebase ha sido inicializado exitosamente.");
   runApp(const MyApp());
 }
 
@@ -19,12 +18,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'LFRU-UIS',
       theme: ThemeData(
+        fontFamily: 'Open Sans', 
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      // Define las rutas en tu aplicación
+      // RUTAS HACIA LAS VISTAS
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),

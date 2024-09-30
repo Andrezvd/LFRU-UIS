@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:lfru_app/vistas/iniciar_sesion/registro.dart'; 
+import 'package:lfru_app/vistas/iniciar_sesion/registro.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +15,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -23,19 +24,41 @@ class _LoginScreenState extends State<LoginScreen> {
       User? user = userCredential.user;
 
       if (user != null && user.emailVerified) {
-        // Aquí puedes redirigir al usuario a la página principal después del login
-        Navigator.pushReplacementNamed(context, '/home'); // Ajusta la ruta según tu app
+        Navigator.pushReplacementNamed(
+            context, '/home'); // Ajusta la ruta según tu app
       } else {
-        // Muestra un mensaje al usuario para que verifique su correo
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Por favor verifica tu correo antes de iniciar sesión.'),
+            content:
+                Text('Por favor verifica tu correo antes de iniciar sesión.'),
           ),
         );
       }
-
     } on FirebaseAuthException catch (e) {
-      // Muestra el mensaje de error en la interfaz
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.message}")),
+      );
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    String email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text("Por favor, introduce tu correo electrónico.")),
+      );
+      return;
+    }
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                "Se ha enviado un correo para restablecer tu contraseña.")),
+      );
+    } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.message}")),
       );
@@ -45,37 +68,125 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Iniciar Sesión'),
-      ),
+      backgroundColor: const Color.fromARGB(153, 84, 230, 59),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Text(
+              'Bienvenido de vuelta!',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const Text(
+              'Inicie Sesión y busque sus grupos de estudio',
+              style: TextStyle(
+                fontSize: 15,
+                color: Color.fromARGB(255, 225, 225, 225),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.03),
             TextField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Correo Electrónico'),
+              decoration: const InputDecoration(
+                labelText: 'Correo Electrónico',
+                labelStyle: TextStyle(
+                  color: Color.fromARGB(196, 225, 225, 225),
+                ),
+                fillColor: Color.fromRGBO(26, 186, 66, 0.498),
+                filled: true,
+              ),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontFamily: 'Roboto',
+              ),
             ),
+            SizedBox(height: MediaQuery.of(context).size.height * 0.02),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
+              decoration: const InputDecoration(
+                labelText: 'Contraseña',
+                labelStyle: TextStyle(
+                  color: Color.fromARGB(196, 225, 225, 225),
+                ),
+                fillColor: Color.fromRGBO(26, 186, 66, 0.498),
+                filled: true,
+              ),
               obscureText: true,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+              ),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              child: const Text('Iniciar Sesión'),
+            // Alinear el botón a la izquierda y reducir el espacio
+            Align(
+              alignment: Alignment.centerLeft, // Alinea a la izquierda
+              child: TextButton(
+                onPressed: _resetPassword,
+                child: const Text(
+                  '¿Olvidó su contraseña?',
+                  style: TextStyle(
+                    color: Colors.black,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
             ),
-            TextButton(
-              onPressed: () {
-                // Navegar a la pantalla de registro
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const RegistroPage()),
-                );
-              },
-              child: const Text('¿No tienes cuenta? Regístrate'),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _login,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(5)),
+                  ),
+                  padding: const EdgeInsets.all(10),
+                ),
+                child: const Text(
+                  'Iniciar Sesión',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  '¿No tienes una cuenta?',
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Color.fromARGB(255, 225, 225, 225),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const RegistroPage()),
+                    );
+                  },
+                  child: const Text(
+                    'Regístrate',
+                    style: TextStyle(
+                      color: Color.fromARGB(255, 0, 0, 0),
+                      decoration: TextDecoration.underline,
+                      decorationStyle: TextDecorationStyle.double,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
