@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:lfru_app/vistas/iniciar_sesion/registro.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lfru_app/vistas/iniciar_sesion/registro.dart'; // Asegúrate de agregar esta línea
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,16 +11,43 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _emailOrUserController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _login() async {
     try {
-      UserCredential userCredential =
-          await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      String email = _emailOrUserController.text.trim();
+      String password = _passwordController.text.trim();
+      
+      UserCredential userCredential;
+
+      // Si el usuario introdujo un correo electrónico
+      if (email.contains('@')) {
+        userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      } else {
+        // Si el usuario introdujo un nombre de usuario, buscar el correo asociado en Firestore
+        var snapshot = await FirebaseFirestore.instance
+            .collection('usuarios')
+            .where('usuario', isEqualTo: email)
+            .get();
+
+        if (snapshot.docs.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Usuario no encontrado.")),
+          );
+          return;
+        }
+
+        String emailFromDb = snapshot.docs.first['correo'];
+
+        userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: emailFromDb,
+          password: password,
+        );
+      }
 
       User? user = userCredential.user;
 
@@ -29,35 +57,10 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content:
-                Text('Por favor verifica tu correo antes de iniciar sesión.'),
+            content: Text('Por favor verifica tu correo antes de iniciar sesión.'),
           ),
         );
       }
-    } on FirebaseAuthException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.message}")),
-      );
-    }
-  }
-
-  Future<void> _resetPassword() async {
-    String email = _emailController.text.trim();
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("Por favor, introduce tu correo electrónico.")),
-      );
-      return;
-    }
-
-    try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                "Se ha enviado un correo para restablecer tu contraseña.")),
-      );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.message}")),
@@ -93,9 +96,9 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.03),
             TextField(
-              controller: _emailController,
+              controller: _emailOrUserController,
               decoration: const InputDecoration(
-                labelText: 'Correo Electrónico',
+                labelText: 'Correo Electrónico o Usuario',
                 labelStyle: TextStyle(
                   color: Color.fromARGB(196, 225, 225, 225),
                 ),
@@ -105,7 +108,6 @@ class _LoginScreenState extends State<LoginScreen> {
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 13,
-                fontFamily: 'Roboto',
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height * 0.02),
@@ -125,11 +127,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 fontSize: 13,
               ),
             ),
-            // Alinear el botón a la izquierda y reducir el espacio
             Align(
-              alignment: Alignment.centerLeft, // Alinea a la izquierda
+              alignment: Alignment.centerLeft,
               child: TextButton(
-                onPressed: _resetPassword,
+                onPressed: () {
+                  // Lógica para restablecer la contraseña
+                },
                 child: const Text(
                   '¿Olvidó su contraseña?',
                   style: TextStyle(
@@ -165,24 +168,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Text(
                   '¿No tienes una cuenta?',
                   style: TextStyle(
-                    fontSize: 15,
-                    color: Color.fromARGB(255, 225, 225, 225),
+                    color: Colors.white,
                   ),
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const RegistroPage()),
-                    );
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (context)=>const RegistroPage()));
                   },
                   child: const Text(
-                    'Regístrate',
+                    'Regístrate aquí',
                     style: TextStyle(
                       color: Color.fromARGB(255, 0, 0, 0),
-                      decoration: TextDecoration.underline,
-                      decorationStyle: TextDecorationStyle.double,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),

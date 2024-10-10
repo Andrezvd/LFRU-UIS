@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // Asegúrate de agregar esta línea
 
 class RegistroPage extends StatefulWidget {
   const RegistroPage({super.key});
@@ -11,11 +12,22 @@ class RegistroPage extends StatefulWidget {
 class _RegistroPageState extends State<RegistroPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _usuarioController = TextEditingController();
+
+  String carreraSeleccionada = 'Ingeniería de Sistemas'; // Opción por defecto
+  final List<String> carreras = [
+    'Ingeniería de Sistemas',
+    'Ingeniería Civil',
+    'Medicina',
+    'Derecho',
+    'Ingeniería Eléctronica'
+  ];
 
   Future<void> _register() async {
     try {
       // Crear usuario con email y contraseña
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -23,8 +35,17 @@ class _RegistroPageState extends State<RegistroPage> {
       // Enviar correo de verificación
       await userCredential.user?.sendEmailVerification();
 
-      print("Correo de verificación enviado");
-      // Mostrar mensaje al usuario
+      // Guardar datos adicionales en Firestore
+      await FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(userCredential.user?.uid)
+          .set({
+        'usuario': _usuarioController.text.trim(),
+        'carrera': carreraSeleccionada,
+        'correo': _emailController.text.trim(),
+        'Titulo': false,
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Registro exitoso. Por favor, verifica tu correo.'),
@@ -33,10 +54,8 @@ class _RegistroPageState extends State<RegistroPage> {
 
       // Regresar a la pantalla de inicio de sesión
       Navigator.pop(context);
-
     } on FirebaseAuthException catch (e) {
       print("Error al registrar: $e");
-      // Muestra el mensaje de error en la interfaz
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.message}")),
       );
@@ -46,27 +65,84 @@ class _RegistroPageState extends State<RegistroPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(153, 84, 230, 59),
       appBar: AppBar(
-        title: const Text('Registro'),
+        title: const Text('Volver al login'),
+        backgroundColor: const Color.fromARGB(153, 84, 230, 59),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             TextField(
+              controller: _usuarioController,
+              decoration: const InputDecoration(
+                labelText: 'Nombre de Usuario',
+                labelStyle:
+                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                fillColor: Color.fromRGBO(26, 186, 66, 0.498),
+                filled: true,
+              ),
+              style: const TextStyle(fontSize: 13, color: Colors.white),
+            ),
+            TextField(
               controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Correo Electrónico'),
+              decoration: const InputDecoration(
+                labelText: 'Correo Electrónico',
+                labelStyle:
+                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                fillColor: Color.fromRGBO(26, 186, 66, 0.498),
+                filled: true,
+              ),
+              style: const TextStyle(fontSize: 13, color: Colors.white),
             ),
             TextField(
               controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Contraseña'),
+              decoration: const InputDecoration(
+                labelText: 'Contraseña',
+                labelStyle:
+                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                fillColor: Color.fromRGBO(26, 186, 66, 0.498),
+                filled: true,
+              ),
+              style: const TextStyle(fontSize: 13, color: Colors.white),
               obscureText: true,
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _register,
-              child: const Text('Registrarse'),
+            DropdownButton<String>(
+              value: carreraSeleccionada,
+              onChanged: (String? newValue) {
+                setState(() {
+                  carreraSeleccionada = newValue!;
+                });
+              },
+              items: carreras.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _register,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 0, 0, 0),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(5)),
+                  ),
+                  padding: const EdgeInsets.all(10),
+                ),
+                child: const Text(
+                  'Registro',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
           ],
         ),
