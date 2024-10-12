@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Asegúrate de agregar esta línea
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RegistroPage extends StatefulWidget {
   const RegistroPage({super.key});
@@ -43,7 +43,8 @@ class _RegistroPageState extends State<RegistroPage> {
         'usuario': _usuarioController.text.trim(),
         'carrera': carreraSeleccionada,
         'correo': _emailController.text.trim(),
-        'Titulo': false,
+        'Titulo': 'Estudiante',
+        'imageUrl': 'https://via.placeholder.com/150' // URL de imagen por defecto
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -64,17 +65,22 @@ class _RegistroPageState extends State<RegistroPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Obtener dimensiones de la pantalla
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(153, 84, 230, 59),
       appBar: AppBar(
         title: const Text('Volver al login'),
         backgroundColor: const Color.fromARGB(153, 84, 230, 59),
       ),
-      body: Padding(
+      body: SingleChildScrollView( 
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
+            SizedBox(height: screenHeight * 0.02), 
             TextField(
               controller: _usuarioController,
               decoration: const InputDecoration(
@@ -86,6 +92,7 @@ class _RegistroPageState extends State<RegistroPage> {
               ),
               style: const TextStyle(fontSize: 13, color: Colors.white),
             ),
+            SizedBox(height: screenHeight * 0.02), // Espaciado responsive
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(
@@ -97,6 +104,7 @@ class _RegistroPageState extends State<RegistroPage> {
               ),
               style: const TextStyle(fontSize: 13, color: Colors.white),
             ),
+            SizedBox(height: screenHeight * 0.02),
             TextField(
               controller: _passwordController,
               decoration: const InputDecoration(
@@ -124,8 +132,9 @@ class _RegistroPageState extends State<RegistroPage> {
                 );
               }).toList(),
             ),
+            SizedBox(height: screenHeight * 0.02), // Espaciado responsive
             SizedBox(
-              width: double.infinity,
+              width: screenWidth * 0.8, // Ancho basado en el tamaño de la pantalla
               child: ElevatedButton(
                 onPressed: _register,
                 style: ElevatedButton.styleFrom(
@@ -144,6 +153,7 @@ class _RegistroPageState extends State<RegistroPage> {
                 ),
               ),
             ),
+            SizedBox(height: screenHeight * 0.02),
           ],
         ),
       ),

@@ -2,7 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:lfru_app/firebase_options.dart';
 import 'package:lfru_app/vistas/iniciar_sesion/login.dart';
-import 'package:lfru_app/vistas/home/home.dart'; // Asegúrate de que esta ruta sea correcta
+import 'package:lfru_app/vistas/home/home.dart';
+import 'package:lfru_app/vistas/iniciar_sesion/registro.dart'; // Asegúrate de que esta ruta sea correcta
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,7 +30,8 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => const LoginScreen(),
-        '/home': (context) => const HomeScreen(),  // Ajusta según tu pantalla de inicio
+        '/home': (context) => const HomeScreen(),
+        '/registro': (context) => const RegistroPage(),  // Ajusta según tu pantalla de inicio
       },
     );
   }
