@@ -56,7 +56,6 @@ class _RegistroPageState extends State<RegistroPage> {
       // Regresar a la pantalla de inicio de sesión
       Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      print("Error al registrar: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: ${e.message}")),
       );

@@ -1,32 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:lfru_app/models/userModel.dart';
+import 'package:lfru_app/vistas/perfil_screens/perfil.dart';
+import 'package:lfru_app/vistas/perfil_screens/editar_perfil.dart';
 
-class UserModel {
-  final String name;
-  final String title;
-  final String imageUrl;
-
-  UserModel({
-    required this.name,
-    required this.title,
-    required this.imageUrl,
-  });
-
-  factory UserModel.fromMap(Map<String, dynamic> data) {
-    return UserModel(
-      name: data['usuario'] ?? 'Nombre por defecto',
-      title: data['Titulo'] ?? 'Título por defecto',
-      imageUrl: data['imageUrl'] ?? 'https://via.placeholder.com/150', // URL de imagen por defecto
-    );
-  }
-}
-
-class MenuLateral extends StatelessWidget {
+class MenuLateral extends StatefulWidget {
   final Function(BuildContext) logoutCallback;
 
-  const MenuLateral({required this.logoutCallback, Key? key}) : super(key: key);
+  const MenuLateral({required this.logoutCallback, super.key});
 
+  @override
+  _MenuLateralState createState() => _MenuLateralState();
+}
+
+class _MenuLateralState extends State<MenuLateral> {
   Future<UserModel?> getUserData() async {
     String? userId = FirebaseAuth.instance.currentUser?.uid;
 
@@ -51,11 +39,11 @@ class MenuLateral extends StatelessWidget {
             future: getUserData(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator()); // Cargando
+                return const Center(child: CircularProgressIndicator()); // Cargando
               }
 
               if (snapshot.hasError) {
-                return Center(child: Text('Error al cargar datos del usuario'));
+                return const Center(child: Text('Error al cargar datos del usuario'));
               }
 
               final user = snapshot.data;
@@ -69,9 +57,24 @@ class MenuLateral extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        CircleAvatar(
-                          radius: 40, // Ajusta el tamaño según sea necesario
-                          backgroundImage: NetworkImage(user?.imageUrl ?? 'https://via.placeholder.com/150'), // Imagen del usuario
+                        GestureDetector(
+                          onTap: () {
+                            if (user != null) {
+                              // Navegar a la pantalla de perfil del usuario solo si 'user' no es nulo
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => UserProfileScreen(user: user)),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Datos de usuario no disponibles')),
+                              );
+                            }
+                          },
+                          child: CircleAvatar(
+                            radius: 40, // Ajusta el tamaño según sea necesario
+                            backgroundImage: NetworkImage(user?.imageUrl ?? 'https://via.placeholder.com/150'), // Imagen del usuario
+                          ),
                         ),
                         const SizedBox(height: 8),
                         Text(
@@ -106,9 +109,26 @@ class MenuLateral extends StatelessWidget {
                     },
                   ),
                   ListTile(
+                    leading: const Icon(Icons.edit),
+                    title: const Text('Editar Perfil'),
+                    onTap: () {
+                      if (user != null) {
+                        // Navegar a la pantalla de editar perfil solo si 'user' no es nulo
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => EditProfileScreen(user: user)),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Datos de usuario no disponibles')),
+                        );
+                      }
+                    },
+                  ),
+                  ListTile(
                     leading: const Icon(Icons.logout),
                     title: const Text('Cerrar Sesión'),
-                    onTap: () => logoutCallback(context), // Ejecuta el logout al hacer clic
+                    onTap: () => widget.logoutCallback(context), // Ejecuta el logout al hacer clic
                   ),
                 ],
               );
