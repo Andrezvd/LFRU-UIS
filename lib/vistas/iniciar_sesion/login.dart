@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -51,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (user != null && user.emailVerified) {
         Navigator.pushReplacementNamed(
-            context, '/home'); // Ajusta la ruta según tu app
+            context, '/home'); 
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

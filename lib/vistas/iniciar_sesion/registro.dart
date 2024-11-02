@@ -12,7 +12,8 @@ class RegistroPage extends StatefulWidget {
 class _RegistroPageState extends State<RegistroPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _usuarioController = TextEditingController();
+  final TextEditingController _idUsuarioController = TextEditingController();
+  final TextEditingController _nombrePublicoController = TextEditingController();
 
   String carreraSeleccionada = 'Ingeniería de Sistemas'; // Opción por defecto
   final List<String> carreras = [
@@ -40,7 +41,8 @@ class _RegistroPageState extends State<RegistroPage> {
           .collection('usuarios')
           .doc(userCredential.user?.uid)
           .set({
-        'usuario': _usuarioController.text.trim(),
+        'usuario': _idUsuarioController.text.trim(),
+        'name': _nombrePublicoController.text.trim(),
         'carrera': carreraSeleccionada,
         'correo': _emailController.text.trim(),
         'Titulo': 'Estudiante',
@@ -74,30 +76,38 @@ class _RegistroPageState extends State<RegistroPage> {
         title: const Text('Volver al login'),
         backgroundColor: const Color.fromARGB(153, 84, 230, 59),
       ),
-      body: SingleChildScrollView( 
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            SizedBox(height: screenHeight * 0.02), 
             TextField(
-              controller: _usuarioController,
+              controller: _idUsuarioController,
               decoration: const InputDecoration(
-                labelText: 'Nombre de Usuario',
-                labelStyle:
-                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                labelText: 'ID de Usuario (único)',
+                labelStyle: TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
                 fillColor: Color.fromRGBO(26, 186, 66, 0.498),
                 filled: true,
               ),
               style: const TextStyle(fontSize: 13, color: Colors.white),
             ),
-            SizedBox(height: screenHeight * 0.02), // Espaciado responsive
+            SizedBox(height: screenHeight * 0.02),
+            TextField(
+              controller: _nombrePublicoController,
+              decoration: const InputDecoration(
+                labelText: 'Nombre Público',
+                labelStyle: TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                fillColor: Color.fromRGBO(26, 186, 66, 0.498),
+                filled: true,
+              ),
+              style: const TextStyle(fontSize: 13, color: Colors.white),
+            ),
+            SizedBox(height: screenHeight * 0.02),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(
                 labelText: 'Correo Electrónico',
-                labelStyle:
-                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                labelStyle: TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
                 fillColor: Color.fromRGBO(26, 186, 66, 0.498),
                 filled: true,
               ),
@@ -108,8 +118,7 @@ class _RegistroPageState extends State<RegistroPage> {
               controller: _passwordController,
               decoration: const InputDecoration(
                 labelText: 'Contraseña',
-                labelStyle:
-                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                labelStyle: TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
                 fillColor: Color.fromRGBO(26, 186, 66, 0.498),
                 filled: true,
               ),
@@ -131,9 +140,9 @@ class _RegistroPageState extends State<RegistroPage> {
                 );
               }).toList(),
             ),
-            SizedBox(height: screenHeight * 0.02), // Espaciado responsive
+            SizedBox(height: screenHeight * 0.02),
             SizedBox(
-              width: screenWidth * 0.8, // Ancho basado en el tamaño de la pantalla
+              width: screenWidth * 0.8,
               child: ElevatedButton(
                 onPressed: _register,
                 style: ElevatedButton.styleFrom(

@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:lfru_app/models/userModel.dart';
-import 'package:lfru_app/vistas/perfil_screens/perfil.dart';
+import 'package:lfru_app/models/user_mdel.dart';
+import 'package:lfru_app/vistas/menu_principal/ver_notificaciones.dart';
 import 'package:lfru_app/vistas/perfil_screens/editar_perfil.dart';
+import 'package:lfru_app/vistas/perfil_screens/perfil.dart';
+import 'package:lfru_app/vistas/menu_principal/crear_grupo.dart';
+import 'package:lfru_app/vistas/menu_principal/buscar_tutores.dart';
+import 'package:lfru_app/vistas/menu_principal/mis_grupos.dart';
+import 'package:lfru_app/vistas/menu_principal/aplicar_ser_tutor.dart';
+import 'package:lfru_app/vistas/menu_principal/mis_solicitudes_tutor.dart';
+import 'package:lfru_app/vistas/menu_principal/solicitar_certificado_tutor.dart';
 
 class MenuLateral extends StatefulWidget {
   final Function(BuildContext) logoutCallback;
@@ -22,7 +29,10 @@ class _MenuLateralState extends State<MenuLateral> {
       return null; // No hay usuario autenticado
     }
 
-    DocumentSnapshot doc = await FirebaseFirestore.instance.collection('usuarios').doc(userId).get();
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(userId)
+        .get();
 
     if (doc.exists) {
       return UserModel.fromMap(doc.data() as Map<String, dynamic>);
@@ -39,11 +49,12 @@ class _MenuLateralState extends State<MenuLateral> {
             future: getUserData(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator()); // Cargando
+                return const Center(child: CircularProgressIndicator());
               }
 
               if (snapshot.hasError) {
-                return const Center(child: Text('Error al cargar datos del usuario'));
+                return const Center(
+                    child: Text('Error al cargar datos del usuario'));
               }
 
               final user = snapshot.data;
@@ -52,33 +63,37 @@ class _MenuLateralState extends State<MenuLateral> {
                 padding: EdgeInsets.zero,
                 children: <Widget>[
                   Container(
-                    height: constraints.maxHeight * 0.3, // Ajusta el tamaño del header
-                    color: Colors.blue,
+                    height: constraints.maxHeight * 0.3,
+                    color: Colors.lightGreen, // Fondo verde claro
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         GestureDetector(
                           onTap: () {
                             if (user != null) {
-                              // Navegar a la pantalla de perfil del usuario solo si 'user' no es nulo
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => UserProfileScreen(user: user)),
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        UserProfileScreen(user: user)),
                               );
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Datos de usuario no disponibles')),
+                                const SnackBar(
+                                    content: Text(
+                                        'Datos de usuario no disponibles')),
                               );
                             }
                           },
                           child: CircleAvatar(
-                            radius: 40, // Ajusta el tamaño según sea necesario
-                            backgroundImage: NetworkImage(user?.imageUrl ?? 'https://via.placeholder.com/150'), // Imagen del usuario
+                            radius: 40,
+                            backgroundImage: NetworkImage(user?.imageUrl ??
+                                'https://via.placeholder.com/150'),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          user?.name ?? 'Nombre por defecto',
+                          '${user?.name}',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 24,
@@ -89,46 +104,131 @@ class _MenuLateralState extends State<MenuLateral> {
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          user?.carrera ?? 'carrera por defecto',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ],
                     ),
                   ),
+                  // OPCIONES PARA TODOS LOS USUARIOS
                   ListTile(
-                    leading: const Icon(Icons.home),
-                    title: const Text('Inicio'),
-                    onTap: () {
-                      Navigator.pop(context); // Cierra el drawer
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.settings),
-                    title: const Text('Configuración'),
-                    onTap: () {
-                      // Acción de configuración
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.edit),
-                    title: const Text('Editar Perfil'),
+                    leading: const Icon(Icons.device_hub),
+                    title: const Text('Editar perfil'),
                     onTap: () {
                       if (user != null) {
-                        // Navegar a la pantalla de editar perfil solo si 'user' no es nulo
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => EditProfileScreen(user: user)),
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  EditProfileScreen(user: user)),
                         );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Datos de usuario no disponibles')),
+                          const SnackBar(
+                              content: Text('Datos de usuario no disponibles')),
                         );
                       }
                     },
                   ),
                   ListTile(
+                    leading: const Icon(Icons.group),
+                    title: const Text('Crear grupo de estudio'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const CrearGrupoEstudio()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.group),
+                    title: const Text('Mis grupos de estudio'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const MisGrupos()),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.search),
+                    title: const Text('Buscar Tutores Personales'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const BuscarTutores()),
+                      );
+                    },
+                  ),
+                  // OPCIONES PARA TUTORES
+                  if (user?.title == 'Tutor') ...[
+                    ListTile(
+                      leading: const Icon(Icons.person_add),
+                      title: const Text('Aplicar para tutor personal'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const AplicarSerTutor()),
+                        );
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.assignment),
+                      title: const Text('Mis solicitudes para tutor'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const MisSolicitudesTutor()),
+                        );
+                      },
+                    ),
+                  ],
+                  if (user?.title != 'Tutor') ...[
+                    ListTile(
+                      leading: const Icon(Icons.checklist_rtl),
+                      title: const Text('Solicitar certificado de tutor'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (contex) =>
+                                  const SolicitarCertificadoTutor()),
+                        );
+                      },
+                    ),
+                  ],
+                  ListTile(
+                    leading: const Icon(Icons.notifications),
+                    title: const Text('Notificaciones'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const VerNotificaciones()),
+                      );
+                    },
+                  ),
+                  ListTile(
                     leading: const Icon(Icons.logout),
-                    title: const Text('Cerrar Sesión'),
-                    onTap: () => widget.logoutCallback(context), // Ejecuta el logout al hacer clic
+                    title: const Text(
+                      'Cerrar sesión',
+                      style: TextStyle(color: Colors.red, fontSize: 18),
+                    ),
+                    onTap: () => widget.logoutCallback(context),
                   ),
                 ],
               );

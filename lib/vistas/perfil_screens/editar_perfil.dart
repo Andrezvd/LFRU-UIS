@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:lfru_app/models/userModel.dart';
+import 'package:lfru_app/models/user_mdel.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -17,20 +17,21 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController nameController;
-  late TextEditingController titleController;
+  late TextEditingController descripcionController;
   File? _image;
 
   @override
   void initState() {
     super.initState();
     nameController = TextEditingController(text: widget.user.name);
-    titleController = TextEditingController(text: widget.user.title);
+    descripcionController =
+        TextEditingController(text: widget.user.descripcion);
   }
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    
+
     if (image != null) {
       setState(() {
         _image = File(image.path);
@@ -41,22 +42,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _updateProfile() async {
     String? imageUrl = widget.user.imageUrl;
 
-    // Si el usuario seleccionó una nueva imagen, súbela a Firebase Storage
-    if (_image != null) {
-      final storageRef = FirebaseStorage.instance.ref().child('user_images/${widget.user.name}.jpg');
-      await storageRef.putFile(_image!);
-      imageUrl = await storageRef.getDownloadURL();
+    try {
+      if (_image != null) {
+        final storageRef = FirebaseStorage.instance
+            .ref()
+            .child('user_images/${FirebaseAuth.instance.currentUser?.uid}.jpg');
+        final uploadTask = await storageRef.putFile(_image!);
+
+        if (uploadTask.state == TaskState.success) {
+          imageUrl = await storageRef.getDownloadURL();
+        } else {
+          throw Exception('Error al subir la imagen');
+        }
+      }
+
+      await FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .update({
+        'name': nameController.text, // Actualiza el campo de nombre
+        'descripcion': descripcionController.text,
+        'imageUrl': imageUrl,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Perfil actualizado con éxito')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar el perfil: $e')),
+      );
     }
-
-    // Actualiza los datos en Firestore
-    await FirebaseFirestore.instance.collection('usuarios').doc(FirebaseAuth.instance.currentUser?.uid).update({
-      'usuario': nameController.text,
-      'Titulo': titleController.text,
-      'imageUrl': imageUrl,
-    });
-
-    // Volver a la pantalla anterior
-    Navigator.pop(context);
   }
 
   @override
@@ -71,30 +88,33 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            GestureDetector(
-              onTap: _pickImage, // Seleccionar nueva imagen
-              child: CircleAvatar(
-                radius: 50,
-                backgroundImage: _image != null
-                    ? FileImage(_image!)
-                    : NetworkImage(widget.user.imageUrl) as ImageProvider,
+      body: SingleChildScrollView(
+        // Envolver la columna en un scroll view
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: _pickImage, // Seleccionar nueva imagen
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: _image != null
+                      ? FileImage(_image!)
+                      : NetworkImage(widget.user.imageUrl) as ImageProvider,
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Nombre'),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: titleController,
-              decoration: const InputDecoration(labelText: 'Título'),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+              ),
+              TextField(
+                controller: descripcionController,
+                decoration: const InputDecoration(labelText: 'Sobre tí'),
+                maxLines: 5, // Campo de varias líneas
+              ),
+            ],
+          ),
         ),
       ),
     );

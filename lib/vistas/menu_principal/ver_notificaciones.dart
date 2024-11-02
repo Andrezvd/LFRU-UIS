@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'menu_lateral.dart'; // Importa el archivo del menú
+import 'package:lfru_app/vistas/home/menu_lateral.dart';
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class VerNotificaciones extends StatelessWidget {
+  const VerNotificaciones({super.key});
 
   Future<void> _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -18,7 +18,7 @@ class HomeScreen extends StatelessWidget {
         children: [
           const Center(
             child: Text(
-              '¡Bienvenido a la pantalla de inicio!',
+              'SUS NOTIFICACIONES',
               style: TextStyle(fontSize: 24),
             ),
           ),
@@ -32,26 +32,26 @@ class HomeScreen extends StatelessWidget {
                 }
               },
               child: Container(
-                width: 10, // Cambiamos a una franja más delgada
-                height: 80, // Tamaño más pequeño para que no sea llamativo
+                width: 10, 
+                height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.5), // Color gris claro
+                  color: Colors.grey.withOpacity(0.5),
                   borderRadius: const BorderRadius.only(
                     topRight: Radius.circular(20), 
                     bottomRight: Radius.circular(20),
                   ),
                 ),
                 child: Icon(
-                  Icons.arrow_forward_ios, // Ícono como pista visual
+                  Icons.arrow_forward_ios, 
                   size: 16,
-                  color: Colors.white.withOpacity(0.8), // Ícono discreto
+                  color: Colors.white.withOpacity(0.8), 
                 ),
               ),
             ),
           ),
         ],
       ),
-      drawer: MenuLateral(logoutCallback: _logout), // Pasamos la función de logout al menú
+      drawer: MenuLateral(logoutCallback: _logout), 
     );
   }
 }
