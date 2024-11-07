@@ -15,7 +15,7 @@ class UserModel {
     required this.imageUrl,
     required this.descripcion,
     required this.carrera,
-    this.groups = const [], 
+    this.groups = const [],
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data) {
