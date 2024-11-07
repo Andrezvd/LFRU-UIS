@@ -26,6 +26,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       key: _scaffoldKey,
       appBar: AppBar(
         title: const Text('Perfil del Usuario'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop(); // Volver a la pantalla anterior
+          },
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.menu),
+            onPressed: () {
+              _scaffoldKey.currentState?.openDrawer(); // Abrir menú lateral manualmente
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -62,7 +76,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const Divider(height: 30, thickness: 1),
                   Text(
-                    'carrera: ${widget.user.carrera}',
+                    'Carrera: ${widget.user.carrera}',
                     style: const TextStyle(fontSize: 18, color: Colors.black87),
                     textAlign: TextAlign.center,
                   ),
@@ -78,7 +92,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ),
       ),
-      drawer: MenuLateral(logoutCallback: _logout), // Uso del menú lateral personalizado
+      drawer: MenuLateral(logoutCallback: _logout), // Mantener el menú lateral
     );
   }
 }

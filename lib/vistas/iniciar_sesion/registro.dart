@@ -46,7 +46,7 @@ class _RegistroPageState extends State<RegistroPage> {
         'carrera': carreraSeleccionada,
         'correo': _emailController.text.trim(),
         'Titulo': 'Estudiante',
-        'imageUrl': 'https://via.placeholder.com/150' // URL de imagen por defecto
+        'imageUrl': 'https://via.placeholder.com/150', // URL de imagen por defecto
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
