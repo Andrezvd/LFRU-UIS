@@ -142,11 +142,20 @@ class _MenuLateralState extends State<MenuLateral> {
                     leading: const Icon(Icons.group),
                     title: const Text('Crear grupo de estudio'),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const CrearGrupoEstudio()),
-                      );
+                      if (user != null) {
+                        // Pasa el usuario obtenido desde Firestore a CrearGrupoEstudio
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CrearGrupoEstudio(user: user),
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Datos de usuario no disponibles')),
+                        );
+                      }
                     },
                   ),
                   ListTile(

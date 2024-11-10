@@ -1,15 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:lfru_app/vistas/home/menu_lateral.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lfru_app/models/user_mdel.dart';
 
-class CrearGrupoEstudio extends StatelessWidget {
-  const CrearGrupoEstudio({super.key});
 
-  Future<void> _logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    // ignore: use_build_context_synchronously
-    Navigator.of(context).pushReplacementNamed('/'); 
+class CrearGrupoEstudio extends StatefulWidget {
+  final UserModel user;
+  const CrearGrupoEstudio({required this.user,super.key});
+  
+
+  @override
+  _CrearGrupoEstudioState createState() => _CrearGrupoEstudioState();
+
+}
+
+class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
+  late TextEditingController nameUser;
+  late TextEditingController isTutor;
+  late TextEditingController cupos;
+  late TextEditingController facultad;
+  late TextEditingController escuela;
+  late TextEditingController materia;
+  late TextEditingController nombreGrupo;
+  late TextEditingController tema;
+  late TextEditingController descripcion;
+  @override
+  void initState() {
+    super.initState();
+    nameUser = TextEditingController(text: widget.user.name);
+    isTutor =
+        TextEditingController(text: widget.user.title);
   }
+
+
+
+  Future<void> _crearGrupo() async {
+    try {
+      // Guardar datos adicionales en Firestore
+      await FirebaseFirestore.instance
+          .collection('gruposEstudio').doc()
+          .set({
+        'propietario': nameUser,
+        'nombreGrupo': nombreGrupo,
+        'facultad': facultad,
+        'escuela': escuela,
+        'materia': materia,
+        'idGrupo': 001, //AQUI ME GUSTARIA QUE EL ID SE GENERARA SOLO
+        'cupos' : cupos,   //
+        'tema' : tema,
+        'tutor': false,
+        'descripcionGrupo': descripcion,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Registro de grupo exitoso. Por favor, verifica tu correo.'),
+        ),
+      );
+
+      // Regresar a la pantalla de inicio de sesión
+      Navigator.pop(context);
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: ${e.message}")),
+      );
+    }
+  }
+
+  
+
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +77,7 @@ class CrearGrupoEstudio extends StatelessWidget {
         children: [
           const Center(
             child: Text(
-              'CREAR GRUPOS DE ESTUDIO',
+              'Creación de grupos',
               style: TextStyle(fontSize: 24),
             ),
           ),
@@ -50,8 +109,32 @@ class CrearGrupoEstudio extends StatelessWidget {
             ),
           ),
         ],
-      ),
-      drawer: MenuLateral(logoutCallback: _logout), 
+      ), 
     );
   }
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

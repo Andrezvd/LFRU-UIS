@@ -4,6 +4,7 @@ import 'package:lfru_app/models/user_mdel.dart';
 class GruposModel {
   final UserModel propietario;
   final String nombreGrupo;
+  final int idGrupo;
   final String descripcionGrupo;
   final int cupos;
   final String facultad;
@@ -15,6 +16,7 @@ class GruposModel {
   GruposModel({
     required this.propietario,
     required this.nombreGrupo,
+    required this.idGrupo,
     required this.descripcionGrupo,
     required this.cupos,
     required this.facultad,
@@ -28,6 +30,7 @@ class GruposModel {
     return GruposModel(
       propietario: data['propietario'] ?? 'propietario',
       nombreGrupo: data['nombre_grupo'] ?? 'Grupo nuevo',
+      idGrupo: data['idGrupo'] ?? 1,
       descripcionGrupo: data['descripcion_Grupo'] ?? 'Descripcion del grupo',
       cupos: data['cupos'] ?? 3, 
       facultad: data['facultad'] ?? 'Facultad',
