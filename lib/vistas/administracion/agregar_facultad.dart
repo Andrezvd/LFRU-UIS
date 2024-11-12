@@ -18,6 +18,7 @@ class _AgregarFacultadState extends State<AgregarFacultad> {
   final List<Carrera> _carrerasSeleccionadas = [];
 
   @override
+  
   void initState() {
     super.initState();
     _cargarCarrerasDisponibles();

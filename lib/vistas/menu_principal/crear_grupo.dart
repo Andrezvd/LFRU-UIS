@@ -1,141 +1,192 @@
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lfru_app/models/grupos_model.dart';
 import 'package:lfru_app/models/user_mdel.dart';
 
-
 class CrearGrupoEstudio extends StatefulWidget {
-  final UserModel user;
-  const CrearGrupoEstudio({required this.user,super.key});
-  
+  const CrearGrupoEstudio({super.key});
 
   @override
   _CrearGrupoEstudioState createState() => _CrearGrupoEstudioState();
-
 }
 
 class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
-  late TextEditingController nameUser;
-  late TextEditingController isTutor;
-  late TextEditingController cupos;
-  late TextEditingController facultad;
-  late TextEditingController escuela;
-  late TextEditingController materia;
-  late TextEditingController nombreGrupo;
-  late TextEditingController tema;
-  late TextEditingController descripcion;
+  final TextEditingController _nombreGrupoController = TextEditingController();
+  final TextEditingController _descripcionGrupoController = TextEditingController();
+  final TextEditingController _cuposController = TextEditingController();
+  final TextEditingController _temaController = TextEditingController();
+
+  UserModel? usuarioActual;
+  bool _tutor = false;
+
+  List<String> facultades = [];
+  List<String> escuelas = [];
+  List<String> carreras = [];
+  List<String> materias = [];
+
+  String? selectedFacultad;
+  String? selectedEscuela;
+  String? selectedCarrera;
+  String? selectedMateria;
+
   @override
   void initState() {
     super.initState();
-    nameUser = TextEditingController(text: widget.user.name);
-    isTutor =
-        TextEditingController(text: widget.user.title);
+    getUserData();
+    loadOptions();
   }
 
+  Future<UserModel?> getUserData() async {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
 
+    if (userId == null) {
+      return null;
+    }
 
-  // ignore: unused_element
-  Future<void> _crearGrupo() async {
-    try {
-      // Guardar datos adicionales en Firestore
-      await FirebaseFirestore.instance
-          .collection('gruposEstudio').doc()
-          .set({
-        'propietario': nameUser,
-        'nombreGrupo': nombreGrupo,
-        'facultad': facultad,
-        'escuela': escuela,
-        'materia': materia,
-        'idGrupo': 001, //AQUI ME GUSTARIA QUE EL ID SE GENERARA SOLO
-        'cupos' : cupos,   //
-        'tema' : tema,
-        'tutor': false,
-        'descripcionGrupo': descripcion,
-      });
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection('usuarios')
+        .doc(userId)
+        .get();
 
+    usuarioActual = UserModel.fromMap(doc.data() as Map<String, dynamic>);
+    _tutor = usuarioActual?.title == 'Tutor';
+    setState(() {});  // Para reflejar el cambio en la interfaz
+    return usuarioActual;
+  }
+
+  Future<void> loadOptions() async {
+    final facultadesSnapshot = await FirebaseFirestore.instance.collection('facultad').get();
+    final escuelasSnapshot = await FirebaseFirestore.instance.collection('escuelas').get();
+    final carrerasSnapshot = await FirebaseFirestore.instance.collection('carreras').get();
+
+    setState(() {
+      facultades = facultadesSnapshot.docs.map((doc) => doc['nombreFacultad'] as String).toList();
+      escuelas = escuelasSnapshot.docs.map((doc) => doc['nombreEscuela'] as String).toList();
+      carreras = carrerasSnapshot.docs.map((doc) => doc['nombreCarrera'] as String).toList();
+      materias = escuelasSnapshot.docs.expand((doc) => List<String>.from(doc['materias'] ?? [])).toList();
+    });
+  }
+
+  Future<void> _crearGrupoEstudio() async {
+    if (usuarioActual == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registro de grupo exitoso. Por favor, verifica tu correo.'),
-        ),
+        const SnackBar(content: Text('Error: Usuario no encontrado')),
+      );
+      return;
+    }
+
+    try {
+      GruposModel nuevoGrupo = GruposModel(
+        propietario: usuarioActual!,
+        nombreGrupo: _nombreGrupoController.text.trim(),
+        idGrupo: '',
+        descripcionGrupo: _descripcionGrupoController.text.trim(),
+        cupos: int.parse(_cuposController.text.trim()),
+        facultad: selectedFacultad ?? '',
+        escuela: selectedEscuela ?? '',
+        carrera: selectedCarrera ?? '',
+        materia: selectedMateria ?? '',
+        tema: _temaController.text.trim(),
+        fecha: DateTime.now(),
+        tutor: _tutor,
       );
 
-      // Regresar a la pantalla de inicio de sesión
-      Navigator.pop(context);
-    } on FirebaseAuthException catch (e) {
+      DocumentReference docRef = await FirebaseFirestore.instance
+          .collection('grupos_estudio')
+          .add(nuevoGrupo.toMap());
+
+      await docRef.update({'idGrupo': docRef.id});
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: ${e.message}")),
+        const SnackBar(content: Text('Grupo de estudio creado exitosamente.')),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
       );
     }
   }
 
-  
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          const Center(
-            child: Text(
-              'Creación de grupos',
-              style: TextStyle(fontSize: 24),
-            ),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).size.height * 0.4,
-            left: 0,
-            child: GestureDetector(
-              onHorizontalDragEnd: (details) {
-                if (details.primaryVelocity! > 0) {
-                  Scaffold.of(context).openDrawer();
-                }
-              },
-              child: Container(
-                width: 10, 
-                height: 80,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.5),
-                  borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(20), 
-                    bottomRight: Radius.circular(20),
-                  ),
-                ),
-                child: Icon(
-                  Icons.arrow_forward_ios, 
-                  size: 16,
-                  color: Colors.white.withOpacity(0.8), 
-                ),
+      appBar: AppBar(
+        title: const Text('Crear Grupo de Estudio'),
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: _nombreGrupoController,
+                decoration: const InputDecoration(labelText: 'Nombre del grupo'),
               ),
-            ),
+              TextField(
+                controller: _descripcionGrupoController,
+                decoration: const InputDecoration(labelText: 'Descripción'),
+              ),
+              TextField(
+                controller: _cuposController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Cupos'),
+              ),
+              DropdownButtonFormField<String>(
+                value: selectedFacultad,
+                items: facultades.map((String facultad) {
+                  return DropdownMenuItem<String>(
+                    value: facultad,
+                    child: Text(facultad),
+                  );
+                }).toList(),
+                onChanged: (newValue) => setState(() => selectedFacultad = newValue),
+                decoration: const InputDecoration(labelText: 'Facultad'),
+              ),
+              DropdownButtonFormField<String>(
+                value: selectedEscuela,
+                items: escuelas.map((String escuela) {
+                  return DropdownMenuItem<String>(
+                    value: escuela,
+                    child: Text(escuela),
+                  );
+                }).toList(),
+                onChanged: (newValue) => setState(() => selectedEscuela = newValue),
+                decoration: const InputDecoration(labelText: 'Escuela'),
+              ),
+              DropdownButtonFormField<String>(
+                value: selectedCarrera,
+                items: carreras.map((String carrera) {
+                  return DropdownMenuItem<String>(
+                    value: carrera,
+                    child: Text(carrera),
+                  );
+                }).toList(),
+                onChanged: (newValue) => setState(() => selectedCarrera = newValue),
+                decoration: const InputDecoration(labelText: 'Carrera'),
+              ),
+              DropdownButtonFormField<String>(
+                value: selectedMateria,
+                items: materias.map((String materia) {
+                  return DropdownMenuItem<String>(
+                    value: materia,
+                    child: Text(materia),
+                  );
+                }).toList(),
+                onChanged: (newValue) => setState(() => selectedMateria = newValue),
+                decoration: const InputDecoration(labelText: 'Materia'),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _crearGrupoEstudio,
+                child: const Text('Crear grupo'),
+              ),
+            ],
           ),
-        ],
-      ), 
+        ),
+      ),
     );
   }
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

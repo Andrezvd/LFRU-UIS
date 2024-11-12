@@ -1,16 +1,18 @@
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:lfru_app/models/user_mdel.dart';
 
 class GruposModel {
   final UserModel propietario;
   final String nombreGrupo;
-  final int idGrupo;
+  final String idGrupo;
   final String descripcionGrupo;
   final int cupos;
   final String facultad;
+  final String carrera;
   final String escuela;
   final String materia;
   final String tema;
+  final DateTime fecha;
   final bool tutor;
 
   GruposModel({
@@ -20,7 +22,9 @@ class GruposModel {
     required this.descripcionGrupo,
     required this.cupos,
     required this.facultad,
+    required this.carrera,
     required this.escuela,
+    required this.fecha,
     required this.materia,
     required this.tema,
     required this.tutor,
@@ -28,17 +32,35 @@ class GruposModel {
 
   factory GruposModel.fromMap(Map<String, dynamic> data) {
     return GruposModel(
-      propietario: data['propietario'] ?? 'propietario',
+      propietario: UserModel.fromMap(data['propietario']),
       nombreGrupo: data['nombre_grupo'] ?? 'Grupo nuevo',
-      idGrupo: data['idGrupo'] ?? 1,
-      descripcionGrupo: data['descripcion_Grupo'] ?? 'Descripcion del grupo',
+      idGrupo: data['idGrupo'] ?? '',
+      descripcionGrupo: data['descripcion_grupo'] ?? 'Descripcion del grupo',
       cupos: data['cupos'] ?? 3, 
       facultad: data['facultad'] ?? 'Facultad',
-      escuela: data['escuela'] ?? 'Cuentale a los demás acerca de tí',
-      materia: data['materia'] ?? 'materia',
-      tema: data['tema'] ?? 'tema',
+      carrera: data['carrera'] ?? 'Carrera',
+      escuela: data['escuela'] ?? 'Escuela',
+      materia: data['materia'] ?? 'Materia',
+      tema: data['tema'] ?? 'Tema',
+      fecha: (data['fecha'] as Timestamp).toDate(),
       tutor: data['tutor'] ?? false,
     );
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      'propietario': propietario.name,
+      'nombre_grupo': nombreGrupo,
+      'idGrupo': idGrupo,
+      'descripcion_grupo': descripcionGrupo,
+      'cupos': cupos,
+      'facultad': facultad,
+      'carrera': carrera,
+      'escuela': escuela,
+      'materia': materia,
+      'tema': tema,
+      'fecha': fecha,
+      'tutor': tutor,
+    };
+  }
 }

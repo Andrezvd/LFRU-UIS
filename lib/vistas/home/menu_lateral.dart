@@ -149,7 +149,7 @@ class _MenuLateralState extends State<MenuLateral> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CrearGrupoEstudio(user: user),
+                            builder: (context) =>const CrearGrupoEstudio(),
                           ),
                         );
                       } else {
@@ -183,7 +183,7 @@ class _MenuLateralState extends State<MenuLateral> {
                     },
                   ),
                   // OPCIONES PARA TUTORES
-                  if (user?.title == 'Tutor') ...[
+                  if (user?.title == 'Tutor' && user?.title != 'Administrador') ...[
                     ListTile(
                       leading: const Icon(Icons.person_add),
                       title: const Text('Aplicar para tutor personal'),
@@ -208,7 +208,7 @@ class _MenuLateralState extends State<MenuLateral> {
                       },
                     ),
                   ],
-                  if (user?.title != 'Tutor') ...[
+                  if (user?.title != 'Tutor' && user?.title != 'Administrador') ...[
                     ListTile(
                       leading: const Icon(Icons.checklist_rtl),
                       title: const Text('Solicitar certificado de tutor'),
@@ -222,7 +222,7 @@ class _MenuLateralState extends State<MenuLateral> {
                       },
                     ),
                   ],
-                  if (user?.title != 'Estudiante') ...[
+                  if (user?.title != 'Estudiante' && user?.title != 'Tutor') ...[
                     ListTile(
                       leading: const Icon(Icons.checklist_rtl),
                       title: const Text('Aministracion'),
