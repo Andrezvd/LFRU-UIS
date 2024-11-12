@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lfru_app/models/user_mdel.dart';
+import 'package:lfru_app/vistas/administracion/formulario_admin.dart';
 import 'package:lfru_app/vistas/menu_principal/ver_notificaciones.dart';
 import 'package:lfru_app/vistas/perfil_screens/editar_perfil.dart';
 import 'package:lfru_app/vistas/perfil_screens/perfil.dart';
@@ -11,6 +12,7 @@ import 'package:lfru_app/vistas/menu_principal/mis_grupos.dart';
 import 'package:lfru_app/vistas/menu_principal/aplicar_ser_tutor.dart';
 import 'package:lfru_app/vistas/menu_principal/mis_solicitudes_tutor.dart';
 import 'package:lfru_app/vistas/menu_principal/solicitar_certificado_tutor.dart';
+
 
 class MenuLateral extends StatefulWidget {
   final Function(BuildContext) logoutCallback;
@@ -220,6 +222,20 @@ class _MenuLateralState extends State<MenuLateral> {
                       },
                     ),
                   ],
+                  if (user?.title != 'Estudiante') ...[
+                    ListTile(
+                      leading: const Icon(Icons.checklist_rtl),
+                      title: const Text('Aministracion'),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (contex) =>
+                                  const FormularioAdmin()),
+                        );
+                      },
+                    ),
+                  ],                  
                   ListTile(
                     leading: const Icon(Icons.notifications),
                     title: const Text('Notificaciones'),

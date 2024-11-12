@@ -15,20 +15,37 @@ class _RegistroPageState extends State<RegistroPage> {
   final TextEditingController _idUsuarioController = TextEditingController();
   final TextEditingController _nombrePublicoController = TextEditingController();
 
-  String carreraSeleccionada = 'Ingeniería de Sistemas'; // Opción por defecto
-  final List<String> carreras = [
-    'Ingeniería de Sistemas',
-    'Ingeniería Civil',
-    'Medicina',
-    'Derecho',
-    'Ingeniería Eléctronica'
-  ];
+  String? carreraSeleccionada;
+  List<String> carreras = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarCarreras();
+  }
+  // OBTENER LAS CARRERAS EN LA BASE DE DATOS DE FIRESTORE
+  Future<void> _cargarCarreras() async {
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('carreras').get();
+      setState(() {
+        // BUSQUEDA POR EL NOMBRE DE LA CARRERA
+        carreras = snapshot.docs.map((doc) => doc['nombreCarrera'] as String).toList();
+        //SELECCIONA UNA CARRERA POR DEFECTO
+        if (carreras.isNotEmpty) {
+          carreraSeleccionada = carreras.first;
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al cargar carreras: $e")),
+      );
+    }
+  }
 
   Future<void> _register() async {
     try {
       // Crear usuario con email y contraseña
-      UserCredential userCredential =
-          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -37,10 +54,7 @@ class _RegistroPageState extends State<RegistroPage> {
       await userCredential.user?.sendEmailVerification();
 
       // Guardar datos adicionales en Firestore
-      await FirebaseFirestore.instance
-          .collection('usuarios')
-          .doc(userCredential.user?.uid)
-          .set({
+      await FirebaseFirestore.instance.collection('usuarios').doc(userCredential.user?.uid).set({
         'usuario': _idUsuarioController.text.trim(),
         'name': _nombrePublicoController.text.trim(),
         'carrera': carreraSeleccionada,
@@ -66,7 +80,6 @@ class _RegistroPageState extends State<RegistroPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Obtener dimensiones de la pantalla
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
