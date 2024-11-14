@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lfru_app/models/user_mdel.dart';
 import 'package:lfru_app/vistas/administracion/formulario_admin.dart';
+import 'package:lfru_app/vistas/menu_principal/buscar_grupos_estudio.dart';
 import 'package:lfru_app/vistas/menu_principal/ver_notificaciones.dart';
 import 'package:lfru_app/vistas/perfil_screens/editar_perfil.dart';
 import 'package:lfru_app/vistas/perfil_screens/perfil.dart';
@@ -12,7 +13,6 @@ import 'package:lfru_app/vistas/menu_principal/mis_grupos.dart';
 import 'package:lfru_app/vistas/menu_principal/aplicar_ser_tutor.dart';
 import 'package:lfru_app/vistas/menu_principal/mis_solicitudes_tutor.dart';
 import 'package:lfru_app/vistas/menu_principal/solicitar_certificado_tutor.dart';
-
 
 class MenuLateral extends StatefulWidget {
   final Function(BuildContext) logoutCallback;
@@ -31,15 +31,22 @@ class _MenuLateralState extends State<MenuLateral> {
       return null; // No hay usuario autenticado
     }
 
-    DocumentSnapshot doc = await FirebaseFirestore.instance
-        .collection('usuarios')
-        .doc(userId)
-        .get();
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(userId)
+          .get();
 
-    if (doc.exists) {
-      return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+      if (doc.exists) {
+        return UserModel.fromMap(doc.data() as Map<String, dynamic>);
+      } else {
+        throw 'El documento no existe'; // Si el documento no existe
+      }
+    } catch (e) {
+      // Aquí capturamos cualquier error que ocurra (como la falta de conexión o problemas con el campo 'groups')
+      print('Error al obtener datos del usuario: $e');
+      return null;
     }
-    return null;
   }
 
   @override
@@ -56,7 +63,7 @@ class _MenuLateralState extends State<MenuLateral> {
 
               if (snapshot.hasError) {
                 return const Center(
-                    child: Text('Error al cargar datos del usuario'));
+                    child: Text('Error al cargasgdujasd del usuario'));
               }
 
               final user = snapshot.data;
@@ -149,7 +156,7 @@ class _MenuLateralState extends State<MenuLateral> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>const CrearGrupoEstudio(),
+                            builder: (context) => const CrearGrupoEstudio(),
                           ),
                         );
                       } else {
@@ -158,6 +165,17 @@ class _MenuLateralState extends State<MenuLateral> {
                               content: Text('Datos de usuario no disponibles')),
                         );
                       }
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.search),
+                    title: const Text('Buscar Grupos de estudio'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const BuscarGruposEstudio()),
+                      );
                     },
                   ),
                   ListTile(
@@ -183,7 +201,8 @@ class _MenuLateralState extends State<MenuLateral> {
                     },
                   ),
                   // OPCIONES PARA TUTORES
-                  if (user?.title == 'Tutor' && user?.title != 'Administrador') ...[
+                  if (user?.title == 'Tutor' &&
+                      user?.title != 'Administrador') ...[
                     ListTile(
                       leading: const Icon(Icons.person_add),
                       title: const Text('Aplicar para tutor personal'),
@@ -208,7 +227,8 @@ class _MenuLateralState extends State<MenuLateral> {
                       },
                     ),
                   ],
-                  if (user?.title != 'Tutor' && user?.title != 'Administrador') ...[
+                  if (user?.title != 'Tutor' &&
+                      user?.title != 'Administrador') ...[
                     ListTile(
                       leading: const Icon(Icons.checklist_rtl),
                       title: const Text('Solicitar certificado de tutor'),
@@ -222,7 +242,8 @@ class _MenuLateralState extends State<MenuLateral> {
                       },
                     ),
                   ],
-                  if (user?.title != 'Estudiante' && user?.title != 'Tutor') ...[
+                  if (user?.title != 'Estudiante' &&
+                      user?.title != 'Tutor') ...[
                     ListTile(
                       leading: const Icon(Icons.checklist_rtl),
                       title: const Text('Aministracion'),
@@ -230,12 +251,11 @@ class _MenuLateralState extends State<MenuLateral> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (contex) =>
-                                  const FormularioAdmin()),
+                              builder: (contex) => const FormularioAdmin()),
                         );
                       },
                     ),
-                  ],                  
+                  ],
                   ListTile(
                     leading: const Icon(Icons.notifications),
                     title: const Text('Notificaciones'),

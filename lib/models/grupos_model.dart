@@ -49,7 +49,7 @@ class GruposModel {
 
   Map<String, dynamic> toMap() {
     return {
-      'propietario': propietario.name,
+      'propietario': propietario.toMap(),
       'nombre_grupo': nombreGrupo,
       'idGrupo': idGrupo,
       'descripcion_grupo': descripcionGrupo,

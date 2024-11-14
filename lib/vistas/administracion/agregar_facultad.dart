@@ -18,22 +18,20 @@ class _AgregarFacultadState extends State<AgregarFacultad> {
   final List<Carrera> _carrerasSeleccionadas = [];
 
   @override
-  
   void initState() {
     super.initState();
     _cargarCarrerasDisponibles();
   }
 
-  // CARGAR LAS CARRERAS SELECCIONADAS EN FIRESTORE
-
-  Future<void> _cargarCarrerasDisponibles() async{
+  // Cargar las carreras disponibles desde Firestore
+  Future<void> _cargarCarrerasDisponibles() async {
     final snapshot = await _firestore.collection('carreras').get();
     setState(() {
       _carrerasDisponibles = snapshot.docs.map((doc) => Carrera.fromMap(doc.data())).toList();
     });
   }
 
-  // Lógica para guardar la carrera en Firestore
+  // Lógica para guardar la facultad en Firestore
   Future<void> _agregarFacultad() async {
     String nombre = _nombreController.text.trim();
 
@@ -44,9 +42,8 @@ class _AgregarFacultadState extends State<AgregarFacultad> {
       return;
     }
 
-    // CREAR UNA NUEVA FACULTAD CON LAS CARRERAS SELECCIONADAS
     Facultad nuevaFacultad = Facultad(
-      id: '', // Dejamos el id vacío para que Firestore lo genere automáticamente
+      id: '',
       nombreFacultad: nombre,
       carreras: _carrerasSeleccionadas,
     );
@@ -57,7 +54,7 @@ class _AgregarFacultadState extends State<AgregarFacultad> {
       await docRef.update({'id': nuevaFacultad.id});
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Carrera agregada exitosamente')),
+        const SnackBar(content: Text('Facultad agregada exitosamente')),
       );
 
       _nombreController.clear();
@@ -66,7 +63,7 @@ class _AgregarFacultadState extends State<AgregarFacultad> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al agregar carrera: $e')),
+        SnackBar(content: Text('Error al agregar facultad: $e')),
       );
     }
   }
@@ -77,63 +74,71 @@ class _AgregarFacultadState extends State<AgregarFacultad> {
       appBar: AppBar(
         title: const Text('Agregar Facultad'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Nombre de la Facultad',
-              style: TextStyle(fontSize: 18),
-            ),
-            TextField(
-              controller: _nombreController,
-              decoration: const InputDecoration(hintText: 'Ejemplo: Facultad de fisicomecanicas'),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Carreras',
-              style: TextStyle(fontSize: 18),
-            ),
-            DropdownButtonFormField<Carrera>(
-              isExpanded: true,
-              hint: const Text('Selecciona una Carrera'),
-              items: _carrerasDisponibles.map((carrera) {
-                return DropdownMenuItem(
-                  value: carrera,
-                  child: Text(carrera.nombreCarrera),
-                );
-              }).toList(),
-              onChanged: (carreraSeleccionada) {
-                setState(() {
-                  if (!_carrerasSeleccionadas.contains(carreraSeleccionada)) {
-                    _carrerasSeleccionadas.add(carreraSeleccionada!);
-                  }
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              children: _carrerasSeleccionadas.map((carrera) {
-                return Chip(
-                  label: Text(carrera.nombreCarrera),
-                  onDeleted: () {
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          double padding = constraints.maxWidth > 600 ? 32.0 : 16.0;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.all(padding),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Nombre de la Facultad',
+                  style: TextStyle(fontSize: 18),
+                ),
+                TextField(
+                  controller: _nombreController,
+                  decoration: const InputDecoration(hintText: 'Ejemplo: Facultad de Fisicomecánicas'),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Carreras',
+                  style: TextStyle(fontSize: 18),
+                ),
+                DropdownButtonFormField<Carrera>(
+                  isExpanded: true,
+                  hint: const Text('Selecciona una Carrera'),
+                  items: _carrerasDisponibles.map((carrera) {
+                    return DropdownMenuItem(
+                      value: carrera,
+                      child: Text(carrera.nombreCarrera),
+                    );
+                  }).toList(),
+                  onChanged: (carreraSeleccionada) {
                     setState(() {
-                      _carrerasSeleccionadas.remove(carrera);
+                      if (!_carrerasSeleccionadas.contains(carreraSeleccionada)) {
+                        _carrerasSeleccionadas.add(carreraSeleccionada!);
+                      }
                     });
                   },
-                );
-              }).toList(),
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: _carrerasSeleccionadas.map((carrera) {
+                    return Chip(
+                      label: Text(carrera.nombreCarrera),
+                      onDeleted: () {
+                        setState(() {
+                          _carrerasSeleccionadas.remove(carrera);
+                        });
+                      },
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 32),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _agregarFacultad,
+                    child: const Text('Agregar Facultad'),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 32),
-            Center(
-              child: ElevatedButton(
-                onPressed: _agregarFacultad,
-                child: const Text('Agregar Facultad'),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

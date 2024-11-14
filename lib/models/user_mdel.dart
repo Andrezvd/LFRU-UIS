@@ -1,4 +1,5 @@
 import 'package:lfru_app/models/grupos_model.dart';
+
 class UserModel {
   final String name;
   final String correo;
@@ -6,7 +7,7 @@ class UserModel {
   final String imageUrl;
   final String descripcion;
   final String carrera;
-  final List<GruposModel> groups; 
+  final List<GruposModel> groups;
 
   UserModel({
     required this.name,
@@ -15,7 +16,7 @@ class UserModel {
     required this.imageUrl,
     required this.descripcion,
     required this.carrera,
-    this.groups = const [],
+    required this.groups,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> data) {
@@ -28,7 +29,20 @@ class UserModel {
       descripcion: data['descripcion'] ?? 'Cuentale a los demás acerca de ti',
       groups: (data['groups'] as List<dynamic>? ?? [])
           .map((groupData) => GruposModel.fromMap(groupData))
-          .toList(), 
+          .toList(),
     );
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'name': name,
+      'correo': correo,
+      'Titulo': title,
+      'imageUrl': imageUrl,
+      'carrera': carrera,
+      'descripcion': descripcion,
+      'groups': groups.map((group) => group.toMap()).toList(), // Convertir cada grupo a Map
+    };
+  }
+
 }

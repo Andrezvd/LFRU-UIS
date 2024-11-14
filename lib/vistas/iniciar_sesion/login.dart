@@ -53,7 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (user != null && user.emailVerified) {
         Navigator.pushReplacementNamed(
-            context, '/home'); 
+            context, '/mis_grupos'); 
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

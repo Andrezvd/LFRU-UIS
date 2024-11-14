@@ -13,7 +13,8 @@ class _RegistroPageState extends State<RegistroPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _idUsuarioController = TextEditingController();
-  final TextEditingController _nombrePublicoController = TextEditingController();
+  final TextEditingController _nombrePublicoController =
+      TextEditingController();
 
   String? carreraSeleccionada;
   List<String> carreras = [];
@@ -23,13 +24,16 @@ class _RegistroPageState extends State<RegistroPage> {
     super.initState();
     _cargarCarreras();
   }
+
   // OBTENER LAS CARRERAS EN LA BASE DE DATOS DE FIRESTORE
   Future<void> _cargarCarreras() async {
     try {
-      QuerySnapshot snapshot = await FirebaseFirestore.instance.collection('carreras').get();
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('carreras').get();
       setState(() {
         // BUSQUEDA POR EL NOMBRE DE LA CARRERA
-        carreras = snapshot.docs.map((doc) => doc['nombreCarrera'] as String).toList();
+        carreras =
+            snapshot.docs.map((doc) => doc['nombreCarrera'] as String).toList();
         //SELECCIONA UNA CARRERA POR DEFECTO
         if (carreras.isNotEmpty) {
           carreraSeleccionada = carreras.first;
@@ -45,7 +49,8 @@ class _RegistroPageState extends State<RegistroPage> {
   Future<void> _register() async {
     try {
       // Crear usuario con email y contraseña
-      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -54,13 +59,17 @@ class _RegistroPageState extends State<RegistroPage> {
       await userCredential.user?.sendEmailVerification();
 
       // Guardar datos adicionales en Firestore
-      await FirebaseFirestore.instance.collection('usuarios').doc(userCredential.user?.uid).set({
+      await FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(userCredential.user?.uid)
+          .set({
         'usuario': _idUsuarioController.text.trim(),
         'name': _nombrePublicoController.text.trim(),
         'carrera': carreraSeleccionada,
         'correo': _emailController.text.trim(),
         'Titulo': 'Estudiante',
-        'imageUrl': 'https://via.placeholder.com/150', // URL de imagen por defecto
+        'imageUrl':
+            'https://via.placeholder.com/150',
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -98,7 +107,8 @@ class _RegistroPageState extends State<RegistroPage> {
               controller: _idUsuarioController,
               decoration: const InputDecoration(
                 labelText: 'ID de Usuario (único)',
-                labelStyle: TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                labelStyle:
+                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
                 fillColor: Color.fromRGBO(26, 186, 66, 0.498),
                 filled: true,
               ),
@@ -109,7 +119,8 @@ class _RegistroPageState extends State<RegistroPage> {
               controller: _nombrePublicoController,
               decoration: const InputDecoration(
                 labelText: 'Nombre Público',
-                labelStyle: TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                labelStyle:
+                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
                 fillColor: Color.fromRGBO(26, 186, 66, 0.498),
                 filled: true,
               ),
@@ -120,7 +131,8 @@ class _RegistroPageState extends State<RegistroPage> {
               controller: _emailController,
               decoration: const InputDecoration(
                 labelText: 'Correo Electrónico',
-                labelStyle: TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                labelStyle:
+                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
                 fillColor: Color.fromRGBO(26, 186, 66, 0.498),
                 filled: true,
               ),
@@ -131,7 +143,8 @@ class _RegistroPageState extends State<RegistroPage> {
               controller: _passwordController,
               decoration: const InputDecoration(
                 labelText: 'Contraseña',
-                labelStyle: TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
+                labelStyle:
+                    TextStyle(color: Color.fromARGB(196, 225, 225, 225)),
                 fillColor: Color.fromRGBO(26, 186, 66, 0.498),
                 filled: true,
               ),

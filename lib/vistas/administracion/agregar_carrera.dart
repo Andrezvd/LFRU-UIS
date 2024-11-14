@@ -23,7 +23,6 @@ class _AgregarCarreraState extends State<AgregarCarrera> {
     _cargarEscuelasDisponibles();
   }
 
-  // Cargar las escuelas disponibles desde Firestore
   Future<void> _cargarEscuelasDisponibles() async {
     final snapshot = await _firestore.collection('escuelas').get();
     setState(() {
@@ -33,7 +32,6 @@ class _AgregarCarreraState extends State<AgregarCarrera> {
     });
   }
 
-  // Lógica para guardar la carrera en Firestore
   Future<void> _agregarCarrera() async {
     String nombre = _nombreController.text.trim();
 
@@ -44,9 +42,8 @@ class _AgregarCarreraState extends State<AgregarCarrera> {
       return;
     }
 
-    // Crear la nueva carrera con las escuelas seleccionadas
     Carrera nuevaCarrera = Carrera(
-      id: '', // Dejamos el id vacío para que Firestore lo genere automáticamente
+      id: '',
       nombreCarrera: nombre,
       escuelas: _escuelasSeleccionadas,
     );
@@ -77,63 +74,79 @@ class _AgregarCarreraState extends State<AgregarCarrera> {
       appBar: AppBar(
         title: const Text('Agregar Carrera'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Nombre de la Carrera',
-              style: TextStyle(fontSize: 18),
-            ),
-            TextField(
-              controller: _nombreController,
-              decoration: const InputDecoration(hintText: 'Ejemplo: Ingeniería de Sistemas'),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Escuelas',
-              style: TextStyle(fontSize: 18),
-            ),
-            DropdownButtonFormField<Escuela>(
-              isExpanded: true,
-              hint: const Text('Selecciona una escuela'),
-              items: _escuelasDisponibles.map((escuela) {
-                return DropdownMenuItem(
-                  value: escuela,
-                  child: Text(escuela.nombreEscuela),
-                );
-              }).toList(),
-              onChanged: (escuelaSeleccionada) {
-                setState(() {
-                  if (!_escuelasSeleccionadas.contains(escuelaSeleccionada)) {
-                    _escuelasSeleccionadas.add(escuelaSeleccionada!);
-                  }
-                });
-              },
-            ),
-            const SizedBox(height: 16),
-            Wrap(
-              children: _escuelasSeleccionadas.map((escuela) {
-                return Chip(
-                  label: Text(escuela.nombreEscuela),
-                  onDeleted: () {
-                    setState(() {
-                      _escuelasSeleccionadas.remove(escuela);
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 32),
-            Center(
-              child: ElevatedButton(
-                onPressed: _agregarCarrera,
-                child: const Text('Agregar Carrera'),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          double width = constraints.maxWidth < 600 ? constraints.maxWidth : 600;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              // ignore: sized_box_for_whitespace
+              child: Container(
+                width: width,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Nombre de la Carrera',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    TextField(
+                      controller: _nombreController,
+                      decoration: const InputDecoration(
+                        hintText: 'Ejemplo: Ingeniería de Sistemas',
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Escuelas',
+                      style: TextStyle(fontSize: 18),
+                    ),
+                    DropdownButtonFormField<Escuela>(
+                      isExpanded: true,
+                      hint: const Text('Selecciona una escuela'),
+                      items: _escuelasDisponibles.map((escuela) {
+                        return DropdownMenuItem(
+                          value: escuela,
+                          child: Text(escuela.nombreEscuela),
+                        );
+                      }).toList(),
+                      onChanged: (escuelaSeleccionada) {
+                        setState(() {
+                          if (!_escuelasSeleccionadas.contains(escuelaSeleccionada)) {
+                            _escuelasSeleccionadas.add(escuelaSeleccionada!);
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 4.0,
+                      children: _escuelasSeleccionadas.map((escuela) {
+                        return Chip(
+                          label: Text(escuela.nombreEscuela),
+                          onDeleted: () {
+                            setState(() {
+                              _escuelasSeleccionadas.remove(escuela);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 32),
+                    Center(
+                      child: ElevatedButton(
+                        onPressed: _agregarCarrera,
+                        child: const Text('Agregar Carrera'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

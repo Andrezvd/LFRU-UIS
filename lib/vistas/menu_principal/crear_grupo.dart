@@ -13,7 +13,8 @@ class CrearGrupoEstudio extends StatefulWidget {
 
 class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
   final TextEditingController _nombreGrupoController = TextEditingController();
-  final TextEditingController _descripcionGrupoController = TextEditingController();
+  final TextEditingController _descripcionGrupoController =
+      TextEditingController();
   final TextEditingController _cuposController = TextEditingController();
   final TextEditingController _temaController = TextEditingController();
 
@@ -51,20 +52,31 @@ class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
 
     usuarioActual = UserModel.fromMap(doc.data() as Map<String, dynamic>);
     _tutor = usuarioActual?.title == 'Tutor';
-    setState(() {});  // Para reflejar el cambio en la interfaz
+    setState(() {}); // Para reflejar el cambio en la interfaz
     return usuarioActual;
   }
 
   Future<void> loadOptions() async {
-    final facultadesSnapshot = await FirebaseFirestore.instance.collection('facultad').get();
-    final escuelasSnapshot = await FirebaseFirestore.instance.collection('escuelas').get();
-    final carrerasSnapshot = await FirebaseFirestore.instance.collection('carreras').get();
+    final facultadesSnapshot =
+        await FirebaseFirestore.instance.collection('facultad').get();
+    final escuelasSnapshot =
+        await FirebaseFirestore.instance.collection('escuelas').get();
+    final carrerasSnapshot =
+        await FirebaseFirestore.instance.collection('carreras').get();
 
     setState(() {
-      facultades = facultadesSnapshot.docs.map((doc) => doc['nombreFacultad'] as String).toList();
-      escuelas = escuelasSnapshot.docs.map((doc) => doc['nombreEscuela'] as String).toList();
-      carreras = carrerasSnapshot.docs.map((doc) => doc['nombreCarrera'] as String).toList();
-      materias = escuelasSnapshot.docs.expand((doc) => List<String>.from(doc['materias'] ?? [])).toList();
+      facultades = facultadesSnapshot.docs
+          .map((doc) => doc['nombreFacultad'] as String)
+          .toList();
+      escuelas = escuelasSnapshot.docs
+          .map((doc) => doc['nombreEscuela'] as String)
+          .toList();
+      carreras = carrerasSnapshot.docs
+          .map((doc) => doc['nombreCarrera'] as String)
+          .toList();
+      materias = escuelasSnapshot.docs
+          .expand((doc) => List<String>.from(doc['materias'] ?? []))
+          .toList();
     });
   }
 
@@ -77,8 +89,10 @@ class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
     }
 
     try {
+      // Crear el grupo en Firestore
       GruposModel nuevoGrupo = GruposModel(
-        propietario: usuarioActual!,
+        propietario:
+            usuarioActual!, // Usa el ID del usuario en lugar del objeto completo
         nombreGrupo: _nombreGrupoController.text.trim(),
         idGrupo: '',
         descripcionGrupo: _descripcionGrupoController.text.trim(),
@@ -92,12 +106,23 @@ class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
         tutor: _tutor,
       );
 
+      // Agregar el grupo a la colección 'grupos_estudio'
       DocumentReference docRef = await FirebaseFirestore.instance
           .collection('grupos_estudio')
           .add(nuevoGrupo.toMap());
 
+      // Actualizar el ID del grupo en Firestore
       await docRef.update({'idGrupo': docRef.id});
 
+      // Añadir el nuevo grupo al usuario
+      await FirebaseFirestore.instance
+          .collection('usuarios')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .update({
+        'groups': FieldValue.arrayUnion([nuevoGrupo.toMap()]),
+      });
+
+      // Mostrar mensaje de éxito y regresar a la pantalla anterior
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Grupo de estudio creado exitosamente.')),
       );
@@ -123,7 +148,8 @@ class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
             children: [
               TextField(
                 controller: _nombreGrupoController,
-                decoration: const InputDecoration(labelText: 'Nombre del grupo'),
+                decoration:
+                    const InputDecoration(labelText: 'Nombre del grupo'),
               ),
               TextField(
                 controller: _descripcionGrupoController,
@@ -142,7 +168,8 @@ class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
                     child: Text(facultad),
                   );
                 }).toList(),
-                onChanged: (newValue) => setState(() => selectedFacultad = newValue),
+                onChanged: (newValue) =>
+                    setState(() => selectedFacultad = newValue),
                 decoration: const InputDecoration(labelText: 'Facultad'),
               ),
               DropdownButtonFormField<String>(
@@ -153,7 +180,8 @@ class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
                     child: Text(escuela),
                   );
                 }).toList(),
-                onChanged: (newValue) => setState(() => selectedEscuela = newValue),
+                onChanged: (newValue) =>
+                    setState(() => selectedEscuela = newValue),
                 decoration: const InputDecoration(labelText: 'Escuela'),
               ),
               DropdownButtonFormField<String>(
@@ -164,7 +192,8 @@ class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
                     child: Text(carrera),
                   );
                 }).toList(),
-                onChanged: (newValue) => setState(() => selectedCarrera = newValue),
+                onChanged: (newValue) =>
+                    setState(() => selectedCarrera = newValue),
                 decoration: const InputDecoration(labelText: 'Carrera'),
               ),
               DropdownButtonFormField<String>(
@@ -175,7 +204,8 @@ class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
                     child: Text(materia),
                   );
                 }).toList(),
-                onChanged: (newValue) => setState(() => selectedMateria = newValue),
+                onChanged: (newValue) =>
+                    setState(() => selectedMateria = newValue),
                 decoration: const InputDecoration(labelText: 'Materia'),
               ),
               const SizedBox(height: 20),
