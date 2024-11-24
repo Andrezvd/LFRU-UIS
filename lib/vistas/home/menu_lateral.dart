@@ -44,6 +44,7 @@ class _MenuLateralState extends State<MenuLateral> {
       }
     } catch (e) {
       // Aquí capturamos cualquier error que ocurra (como la falta de conexión o problemas con el campo 'groups')
+      // ignore: avoid_print
       print('Error al obtener datos del usuario: $e');
       return null;
     }
@@ -63,7 +64,7 @@ class _MenuLateralState extends State<MenuLateral> {
 
               if (snapshot.hasError) {
                 return const Center(
-                    child: Text('Error al cargasgdujasd del usuario'));
+                    child: Text('Error al cargar del usuario'));
               }
 
               final user = snapshot.data;

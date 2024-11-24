@@ -4,7 +4,7 @@ import 'package:lfru_app/models/user_mdel.dart';
 class GruposModel {
   final UserModel propietario;
   final String nombreGrupo;
-  final String idGrupo;
+  String? idGrupo;
   final String descripcionGrupo;
   final int cupos;
   final String facultad;
