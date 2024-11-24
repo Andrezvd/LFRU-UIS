@@ -115,6 +115,7 @@ class _CrearGrupoEstudioState extends State<CrearGrupoEstudio> {
       await docRef.update({'idGrupo': docRef.id});
 
       // Añadir el nuevo grupo al usuario
+      nuevoGrupo.idGrupo = docRef.id;
       await FirebaseFirestore.instance
           .collection('usuarios')
           .doc(FirebaseAuth.instance.currentUser?.uid)

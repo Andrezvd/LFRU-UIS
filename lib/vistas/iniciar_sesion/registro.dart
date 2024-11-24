@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lfru_app/buscar_grupos/cargar_carreras.dart';
 
 class RegistroPage extends StatefulWidget {
   const RegistroPage({super.key});
@@ -28,13 +29,13 @@ class _RegistroPageState extends State<RegistroPage> {
   // OBTENER LAS CARRERAS EN LA BASE DE DATOS DE FIRESTORE
   Future<void> _cargarCarreras() async {
     try {
-      QuerySnapshot snapshot =
-          await FirebaseFirestore.instance.collection('carreras').get();
+      // Usar la clase CargarCarreras para obtener la lista de carreras
+      List<String> carrerasList = await CargarCarreras.cargarCarreras();
+
       setState(() {
-        // BUSQUEDA POR EL NOMBRE DE LA CARRERA
-        carreras =
-            snapshot.docs.map((doc) => doc['nombreCarrera'] as String).toList();
-        //SELECCIONA UNA CARRERA POR DEFECTO
+        carreras = carrerasList;
+
+        // Si hay carreras disponibles, selecciona la primera por defecto
         if (carreras.isNotEmpty) {
           carreraSeleccionada = carreras.first;
         }
