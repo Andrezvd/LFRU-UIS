@@ -21,13 +21,12 @@ class ObtenerGrupos {
         // Si no se proporciona el ID de grupo, buscamos por facultad, carrera y escuela
         snapshot = await FirebaseFirestore.instance
             .collection('grupos_estudio')
-            .where('facultad', isEqualTo: facultad) // Filtra por facultad
-            .where('carrera', isEqualTo: carrera)   // Filtra por carrera
-            .where('escuela', isEqualTo: escuela)   // Filtra por escuela
+            .where('facultad', isEqualTo: facultad) 
+            .where('carrera', isEqualTo: carrera) 
+            .where('escuela', isEqualTo: escuela)  
             .get();
       }
 
-      // Convertimos cada documento en un objeto GruposModel usando fromMap
       List<GruposModel> gruposDisponibles = snapshot.docs.map((doc) {
         return GruposModel.fromMap(doc.data() as Map<String, dynamic>);
       }).toList();

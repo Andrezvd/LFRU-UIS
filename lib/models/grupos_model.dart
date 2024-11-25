@@ -6,7 +6,7 @@ class GruposModel {
   final String nombreGrupo;
   String? idGrupo;
   final String descripcionGrupo;
-  final int cupos;
+  int cupos;
   final String facultad;
   final String carrera;
   final String escuela;
