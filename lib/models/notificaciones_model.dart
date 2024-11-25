@@ -1,24 +1,53 @@
-class NotificacionesModel {
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-  final String origen;
-  final String destino;
-  final String asunto;
-  final String cuerpo;
+class NotificacionesModel {
+  final String idNotificacion; // ID único de la notificación
+  final String origen; // ID del usuario que genera la notificación
+  final String destino; // ID del usuario que recibe la notificación
+  final String tipo; 
+  final String titulo; 
+  final String cuerpo; 
+  final DateTime fecha; 
+  final bool leida; 
 
   NotificacionesModel({
+    required this.idNotificacion,
     required this.origen,
     required this.destino,
-    required this.asunto,
+    required this.tipo,
+    required this.titulo,
     required this.cuerpo,
+    required this.fecha,
+    this.leida = false,
   });
 
-  factory NotificacionesModel.fromMap(Map<String,dynamic> data){
+  // Método para convertir a JSON (útil si trabajas con Firebase o APIs)
+  Map<String, dynamic> toJson() {
+    return {
+      'idNotificacion': idNotificacion,
+      'origen': origen,
+      'destino': destino,
+      'tipo': tipo,
+      'titulo': titulo,
+      'cuerpo': cuerpo,
+      'fecha': fecha,
+      'leida': leida,
+    };
+  }
+
+  // Método para construir desde JSON
+  factory NotificacionesModel.fromJson(Map<String, dynamic> json) {
     return NotificacionesModel(
-      origen: data['origen'],
-      destino: data['destino'],
-      asunto: data['asunto'],
-      cuerpo: data['cuerpo']
+      idNotificacion: json['idNotificacion'],
+      origen: json['origen'],
+      destino: json['destino'],
+      tipo: json['tipo'],
+      titulo: json['titulo'],
+      cuerpo: json['cuerpo'],
+      fecha: (json['fecha'] as Timestamp).toDate(),
+      leida: json['leida'],
     );
   }
+
 
 }

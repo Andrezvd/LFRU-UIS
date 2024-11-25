@@ -1,4 +1,8 @@
+// ignore_for_file: avoid_print
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:lfru_app/logica_solicitudes/solicitar_unirse.dart';
 import 'package:lfru_app/models/grupos_model.dart';
 
 class MostrarGrupos extends StatelessWidget {
@@ -12,10 +16,11 @@ class MostrarGrupos extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Mostrar Grupos'),
       ),
-      resizeToAvoidBottomInset: true, // Asegúrate de que la pantalla se ajuste al teclado
+      resizeToAvoidBottomInset:
+          true, // Asegúrate de que la pantalla se ajuste al teclado
       body: grupos.isEmpty
           ? const Center(child: Text('No se encontraron grupos.'))
-          : SingleChildScrollView( // Aquí usamos SingleChildScrollView para que todo sea desplazable
+          : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -23,11 +28,14 @@ class MostrarGrupos extends StatelessWidget {
                     bool esGrupoPorTutor = grupo.tutor;
 
                     return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: esGrupoPorTutor ? Colors.blueAccent : Colors.transparent,
+                          color: esGrupoPorTutor
+                              ? Colors.blueAccent
+                              : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -43,7 +51,9 @@ class MostrarGrupos extends StatelessWidget {
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
-                                color: esGrupoPorTutor ? Colors.blueAccent : Colors.black,
+                                color: esGrupoPorTutor
+                                    ? Colors.blueAccent
+                                    : Colors.black,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -51,7 +61,9 @@ class MostrarGrupos extends StatelessWidget {
                             Text(
                               'Descripción: ${grupo.descripcionGrupo}',
                               style: TextStyle(
-                                fontStyle: esGrupoPorTutor ? FontStyle.italic : FontStyle.normal,
+                                fontStyle: esGrupoPorTutor
+                                    ? FontStyle.italic
+                                    : FontStyle.normal,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -76,6 +88,23 @@ class MostrarGrupos extends StatelessWidget {
                                   ],
                                 ),
                               ),
+
+                            // Espaciado antes del botón
+                            const SizedBox(height: 12),
+                            // Botón "Solicitar Unirse"
+                            ElevatedButton(
+                              onPressed: grupo.cupos > 0
+                                  ? () {
+                                      _solicitarUnirse(grupo);
+                                    }
+                                  : null, // Deshabilitado si no hay cupos
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: grupo.cupos > 0
+                                    ? Colors.green
+                                    : Colors.grey,
+                              ),
+                              child: const Text("Solicitar Unirse"),
+                            ),
                           ],
                         ),
                       ),
@@ -85,5 +114,28 @@ class MostrarGrupos extends StatelessWidget {
               ),
             ),
     );
+  }
+
+  void _solicitarUnirse(GruposModel grupo) async {
+    try {
+      // Obtener el usuario autenticado
+      final user = FirebaseAuth.instance.currentUser;
+
+      if (user != null && user.email != null) {
+        final correoUsuario = user.email!; // Correo del usuario actual
+        await SolicitarUnirse.solicitarUnirse(
+          correoUsuario, // ID de origen (correo del usuario)
+          grupo.idGrupo!,
+          grupo.propietario.correo, // ID de destino (propietario del grupo)
+        );
+        // ignore print
+        print(
+            "Solicitud enviada por $correoUsuario al grupo ${grupo.nombreGrupo}");
+      } else {
+        print("Error: No se encontró un usuario autenticado.");
+      }
+    } catch (e) {
+      print("Error al solicitar unirse al grupo: $e");
+    }
   }
 }
