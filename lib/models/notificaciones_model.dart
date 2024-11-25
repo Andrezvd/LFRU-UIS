@@ -8,7 +8,8 @@ class NotificacionesModel {
   final String titulo; 
   final String cuerpo; 
   final DateTime fecha; 
-  final bool leida; 
+  final bool leida;
+  final idRequerido;
 
   NotificacionesModel({
     required this.idNotificacion,
@@ -19,6 +20,7 @@ class NotificacionesModel {
     required this.cuerpo,
     required this.fecha,
     this.leida = false,
+    required this.idRequerido,
   });
 
   // Método para convertir a JSON (útil si trabajas con Firebase o APIs)
@@ -32,6 +34,7 @@ class NotificacionesModel {
       'cuerpo': cuerpo,
       'fecha': fecha,
       'leida': leida,
+      'idRequerido':idRequerido,
     };
   }
 
@@ -46,6 +49,7 @@ class NotificacionesModel {
       cuerpo: json['cuerpo'],
       fecha: (json['fecha'] as Timestamp).toDate(),
       leida: json['leida'],
+      idRequerido: json['idRequerido'],
     );
   }
 

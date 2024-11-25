@@ -126,7 +126,8 @@ class MostrarGrupos extends StatelessWidget {
         await SolicitarUnirse.solicitarUnirse(
           correoUsuario, // ID de origen (correo del usuario)
           grupo.idGrupo!,
-          grupo.propietario.correo, // ID de destino (propietario del grupo)
+          grupo.propietario.correo,
+          grupo.nombreGrupo, // ID de destino (propietario del grupo)
         );
         // ignore print
         print(

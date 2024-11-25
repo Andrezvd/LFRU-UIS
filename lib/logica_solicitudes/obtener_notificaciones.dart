@@ -20,7 +20,7 @@ class ObtenerNotificaciones {
       return notificaciones;
     } catch (e) {
       // Manejo de errores
-      print('Error al obtener las notifiiiiiicaciones: $e');
+      print('Error al obtener las notificaciones: $e');
       return [];
     }
   }

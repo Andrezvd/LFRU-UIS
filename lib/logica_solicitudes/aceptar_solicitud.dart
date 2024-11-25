@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:lfru_app/models/grupos_model.dart';
 import 'package:lfru_app/models/user_mdel.dart';
 import 'package:lfru_app/models/notificaciones_model.dart';
@@ -7,40 +7,54 @@ import 'package:lfru_app/models/notificaciones_model.dart';
 class AceptarSolicitud {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Aceptar solicitud
-    void aceptarSolicitud(String idNotificacion, String idUsuarioOrigen, String idGrupo) async {
+  void aceptarSolicitud(String idNotificacion, String correoUsuario, String idGrupo) async {
     try {
-      // 1. Obtener el usuario que envió la solicitud
-      DocumentSnapshot userSnapshot = await _firestore.collection('usuarios').doc(idUsuarioOrigen).get();
-      if (!userSnapshot.exists) {
+      // 1. Marcar la notificación como leída
+      await _firestore.collection('notificaciones').doc(idNotificacion).update({
+        'leida': true,
+      });
+
+      // 2. Obtener el usuario que envió la solicitud
+      QuerySnapshot userSnapshot = await _firestore
+          .collection('usuarios')
+          .where('correo', isEqualTo: correoUsuario)
+          .get();
+
+      if (userSnapshot.docs.isEmpty) {
         print('Usuario no encontrado');
         return;
       }
 
-      // Obtener datos del usuario
-      UserModel user = UserModel.fromMap(userSnapshot.data() as Map<String, dynamic>);
+      // Usar el primer documento encontrado
+      DocumentSnapshot userDoc = userSnapshot.docs.first;
+      UserModel user = UserModel.fromMap(userDoc.data() as Map<String, dynamic>);
 
-      // 2. Obtener el grupo
-      DocumentSnapshot groupSnapshot = await _firestore.collection('grupos').doc(idGrupo).get();
-      if (!groupSnapshot.exists) {
+      // 3. Obtener el grupo usando where en lugar de doc(idGrupo)
+      QuerySnapshot groupSnapshot = await _firestore
+          .collection('grupos_estudio')
+          .where('idGrupo', isEqualTo: idGrupo)
+          .get();
+
+      if (groupSnapshot.docs.isEmpty) {
         print('Grupo no encontrado');
         return;
       }
 
-      // Obtener datos del grupo
-      GruposModel group = GruposModel.fromMap(groupSnapshot.data() as Map<String, dynamic>);
+      // Usar el primer documento encontrado
+      DocumentSnapshot groupDoc = groupSnapshot.docs.first;
+      GruposModel group = GruposModel.fromMap(groupDoc.data() as Map<String, dynamic>);
 
-      // 3. Añadir el grupo al usuario (a su lista de grupos)
+      // 4. Añadir el grupo al usuario si no está ya en la lista
       if (!user.groups.any((g) => g.idGrupo == idGrupo)) {
-        user.groups.add(group); // Añadir el grupo al usuario
+        user.groups.add(group);
       }
 
-      // 4. Actualizar el usuario con el nuevo grupo
-      await _firestore.collection('usuarios').doc(idUsuarioOrigen).update({
+      // Actualizar la lista de grupos del usuario en Firestore
+      await _firestore.collection('usuarios').doc(userDoc.id).update({
         'groups': user.groups.map((group) => group.toMap()).toList(),
       });
 
-      // 5. Disminuir el número de cupos disponibles del grupo
+      // 5. Verificar y disminuir el número de cupos del grupo
       if (group.cupos > 0) {
         group.cupos -= 1;
       } else {
@@ -48,28 +62,26 @@ class AceptarSolicitud {
         return;
       }
 
-      // 6. Actualizar el grupo con los nuevos cupos
-      await _firestore.collection('grupos').doc(idGrupo).update({
+      // Actualizar los datos del grupo en Firestore
+      await _firestore.collection('grupos_estudio').doc(groupDoc.id).update({
         'cuposDisponibles': group.cupos,
-        'miembros': FieldValue.arrayUnion([idUsuarioOrigen]), // Agregar al usuario a la lista de miembros
+        'miembros': FieldValue.arrayUnion([correoUsuario]),
       });
 
-      // 7. Enviar notificación al usuario que realizó la solicitud
+      // 6. Enviar una notificación al usuario
       final nuevaNotificacion = NotificacionesModel(
-        idNotificacion: UniqueKey().toString(),
-        origen: idUsuarioOrigen,
-        destino: idUsuarioOrigen,
+        idNotificacion: UniqueKey().toString(), // Firebase lo generará automáticamente
+        origen: user.correo, // Cambia según sea necesario
+        destino: correoUsuario,
         tipo: 'solicitud_aceptada',
         titulo: 'Solicitud aceptada',
         cuerpo: '¡Felicidades! Ahora eres miembro del grupo ${group.nombreGrupo}.',
         fecha: DateTime.now(),
+        idRequerido: idGrupo,
       );
 
-      // Guardar la notificación
       await _firestore.collection('notificaciones').add(nuevaNotificacion.toJson());
 
-      // 8. Eliminar la notificación original
-      await _firestore.collection('notificaciones').doc(idNotificacion).delete();
 
       print('Solicitud aceptada, grupo añadido al usuario y notificación enviada');
     } catch (e) {

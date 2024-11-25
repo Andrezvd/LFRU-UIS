@@ -7,52 +7,71 @@ import 'package:lfru_app/logica_solicitudes/rechazar_solicitud.dart';
 import 'package:lfru_app/models/notificaciones_model.dart';
 import 'package:lfru_app/vistas/home/menu_lateral.dart';
 
-class VerNotificaciones extends StatelessWidget {
+class VerNotificaciones extends StatefulWidget {
   const VerNotificaciones({super.key});
 
-  Future<void> _logout(BuildContext context) async {
-    await FirebaseAuth.instance.signOut();
-    Navigator.of(context).pushReplacementNamed('/');
+  @override
+  State<VerNotificaciones> createState() => _VerNotificacionesState();
+}
+
+class _VerNotificacionesState extends State<VerNotificaciones> {
+  final user = FirebaseAuth.instance.currentUser;
+  late Future<List<NotificacionesModel>> _notificacionesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _notificacionesFuture = _obtenerNotificaciones(user!.email!);
   }
 
-  // Función para obtener las notificaciones del usuario
   Future<List<NotificacionesModel>> _obtenerNotificaciones(String correo) async {
     try {
       final obtenerNotificaciones = ObtenerNotificaciones();
-      return obtenerNotificaciones.obtenerNotificaciones(correo);
+      return await obtenerNotificaciones.obtenerNotificaciones(correo);
     } catch (e) {
       print("Error obteniendo notificaciones: $e");
       return [];
     }
   }
 
-  // Función para aceptar solicitud
-  void _aceptarSolicitud(
-      String idNotificacion, String correoOrigen, String correoDestino) {
-    final aceptarSolicitudes = AceptarSolicitud();
-    aceptarSolicitudes.aceptarSolicitud(
-        idNotificacion, correoOrigen, correoOrigen);
+  void _reloadNotifications() {
+    setState(() {
+      _notificacionesFuture = _obtenerNotificaciones(user!.email!);
+    });
   }
 
-  // Función para rechazar solicitud
-  void _rechazarSolicitud(
-      String idNotificacion, String correoOrigen, String correoDestino) {
-    RechazarSolicitud.rechazarSolicitud(
-        idNotificacion, correoOrigen, correoDestino);
+  Future<void> _aceptarSolicitud(NotificacionesModel notificacion) async {
+    AceptarSolicitud().aceptarSolicitud(
+      notificacion.idNotificacion,
+      notificacion.origen,
+      notificacion.idRequerido,
+    );
+    _reloadNotifications();
   }
 
-  // Función para borrar notificación
-  void _borrarNotificacion(String idNotificacion) {
-    final borrarNotificacion = BorrarNotificacion();
-    borrarNotificacion.borrarNotificaciones(idNotificacion);
+  Future<void> _rechazarSolicitud(NotificacionesModel notificacion) async {
+     RechazarSolicitud.rechazarSolicitud(
+      notificacion.idNotificacion,
+      notificacion.origen,
+      notificacion.destino,
+      notificacion.idRequerido,
+    );
+    _reloadNotifications();
+  }
+
+  Future<void> _borrarNotificacion(String idNotificacion) async {
+    await BorrarNotificacion().borrarNotificaciones(idNotificacion);
+    _reloadNotifications();
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacementNamed('/');
   }
 
   @override
   Widget build(BuildContext context) {
-    // Asumimos que el correo del usuario actual lo obtienes de Firebase Auth
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null || user.email == null) {
+    if (user == null || user!.email == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Mis Notificaciones')),
         body: const Center(
@@ -60,8 +79,6 @@ class VerNotificaciones extends StatelessWidget {
         ),
       );
     }
-
-    final correoUsuario = user.email!;
 
     return Scaffold(
       appBar: AppBar(
@@ -74,60 +91,96 @@ class VerNotificaciones extends StatelessWidget {
         ],
       ),
       body: FutureBuilder<List<NotificacionesModel>>(
-        future: _obtenerNotificaciones(correoUsuario),
+        future: _notificacionesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return const Center(
-                child: Text('Error al cargar las notificaciones'));
+            return Center(
+              child: Text('Error al cargar las notificaciones: ${snapshot.error}'),
+            );
           }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No tienes notificaciones'));
+          final notificaciones = snapshot.data ?? [];
+          if (notificaciones.isEmpty) {
+            return const Center(child: Text('No tienes notificaciones.'));
           }
-
-          List<NotificacionesModel> notificaciones = snapshot.data!;
 
           return ListView.builder(
             itemCount: notificaciones.length,
             itemBuilder: (context, index) {
-              NotificacionesModel notificacion = notificaciones[index];
+              final notificacion = notificaciones[index];
 
               return Card(
                 margin: const EdgeInsets.all(8.0),
                 elevation: 4,
-                child: ListTile(
-                  title: Text(notificacion.titulo),
-                  subtitle: Text(notificacion.cuerpo),
-                  trailing: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Botones para aceptar, rechazar y borrar
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.check, color: Colors.green),
-                            onPressed: () {
-                              _aceptarSolicitud(notificacion.idNotificacion,
-                                  notificacion.origen, notificacion.destino);
-                            },
+                      Text(
+                        notificacion.titulo,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        notificacion.cuerpo,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      if (notificacion.tipo == 'solicitud_grupo') ...[
+                        if (!notificacion.leida) ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: IconButton(
+                                  icon: const Icon(Icons.check, color: Colors.green),
+                                  onPressed: () => _aceptarSolicitud(notificacion),
+                                  tooltip: "Aceptar",
+                                ),
+                              ),
+                              Expanded(
+                                child: IconButton(
+                                  icon: const Icon(Icons.close, color: Colors.red),
+                                  onPressed: () => _rechazarSolicitud(notificacion),
+                                  tooltip: "Rechazar",
+                                ),
+                              ),
+                              Expanded(
+                                child: IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.grey),
+                                  onPressed: () => _borrarNotificacion(notificacion.idNotificacion),
+                                  tooltip: "Borrar",
+                                ),
+                              ),
+                            ],
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.close, color: Colors.red),
-                            onPressed: () {
-                              _rechazarSolicitud(notificacion.idNotificacion,
-                                  notificacion.origen, notificacion.destino);
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.grey),
-                            onPressed: () {
-                              _borrarNotificacion(notificacion.idNotificacion);
-                            },
+                        ] else ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.grey),
+                                onPressed: () => _borrarNotificacion(notificacion.idNotificacion),
+                                tooltip: "Borrar",
+                              ),
+                            ],
                           ),
                         ],
-                      ),
+                      ] else if (notificacion.tipo == 'solicitud_aceptada') ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.grey),
+                              onPressed: () => _borrarNotificacion(notificacion.idNotificacion),
+                              tooltip: "Borrar",
+                            ),
+                          ],
+                        ),
+                      ]
                     ],
                   ),
                 ),
